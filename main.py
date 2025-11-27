@@ -50,8 +50,31 @@ def get_product_by_id(product_id: int, db: Session = Depends(get_db)):
         return product
     return {"error": "Product not found"}
 
-@app.post('/product')
-def add_product(product: Product):
-    products.append(product)
-    
-    return product
+@app.post("/products/")
+def create_product(product: Product, db: Session = Depends(get_db)):
+    db.add(database_models.Product(**product.model_dump()))
+    db.commit()
+    return {"message": "Product created successfully", "product": product}
+
+@app.put("/products/{product_id}")
+def update_product(product_id: int, product: Product, db: Session = Depends(get_db)):
+    db_product = db.query(database_models.Product).filter(database_models.Product.id == product_id).first()
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    db_product.name = product.name
+    db_product.description = product.description
+    db_product.price = product.price
+    db_product.quantity = product.quantity
+    db.commit()
+    db.refresh(db_product)
+    return {"message": "Product updated successfully", "product": db_product}
+
+
+@app.delete("/products/{product_id}")
+def delete_product(product_id: int, db: Session = Depends(get_db)):
+    db_product = db.query(database_models.Product).filter(database_models.Product.id == product_id).first()
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    db.delete(db_product)
+    db.commit()
+    return {"message": "Product deleted successfully"}
