@@ -3,12 +3,20 @@ from models import Product
 from database import SessionLocal, engine
 import database_models
 from sqlalchemy.orm import Session
-app = FastAPI()
-database_models.Base.metadata.create_all(bind=engine)
+from fastapi.middleware.cors import CORSMiddleware
 
-@app.get('/')
-def greeter():
-    return "Hello its me"
+app = FastAPI()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+database_models.Base.metadata.create_all(bind=engine)
 
 products = [
     Product(id = 1, name = "mobile xp", description= "this is smartphone", price = 100.11,  quantity=2),
